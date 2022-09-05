@@ -16,25 +16,21 @@ TaskManager.defineTask(LOCATION_TRACKING, async ({ data, error }) => {
   }
   if (data) {
     const { locations } = data;
-    // let lat = locations[0].coords.latitude;
-    // let long = locations[0].coords.longitude;
-    // let timest = locations[0].timestamp;
 
-    // console.log(
-    //   `${new Date(Date.now()).toLocaleString()}: ${lat},${long}`
-    // );
-    
     listLocation.push({
-        timestamp: locations[0].timestamp,
-        latitude: locations[0].coords.latitude,
-        longitude: locations[0].coords.longitude,
-      });
+      timestamp: locations[0].timestamp,
+      latitude: locations[0].coords.latitude,
+      longitude: locations[0].coords.longitude,
+    });
+       
+    console.log(listLocation);
+    
+    // console.log(
+    //   `${new Date(Date.now()).toLocaleString()}: ${locations[0].coords.latitude},${locations[0].coords.longitude}`
+    // );
 
-      console.log(listLocation);
-      
   }
 });
-
 
 export default function App() {
   // Configuração firebase e commit no banco
@@ -49,14 +45,24 @@ export default function App() {
   
   initializeApp(firebaseConfig);
   
-  function storeHighScore(userId) {
+  function storeHighScore(userId="user123") {
     const db = getDatabase();
-    const reference = ref(db, 'users/' + "user12345");   
+    const reference = ref(db, 'users/' + userId);   
     set(reference, {
       location: listLocation
+      // latitude: locations[0].coords.latitude,
+      // longitude: locations[0].coords.longitude,
     });
   }
 
+   // Request permissions right after starting the app
+   useEffect(() => {
+    const requestPermissions = async () => {
+      const foreground = await Location.requestForegroundPermissionsAsync()
+      if (foreground.granted) await Location.requestBackgroundPermissionsAsync()
+    }
+    requestPermissions()
+  }, [])
 
   const startLocationTracking = async () => {
     await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
@@ -83,22 +89,8 @@ export default function App() {
         console.log("Location tacking stopped")
       }
   };
-
-  useEffect(() => {
-    const config = async () => {
-      let res = await Permissions.askAsync(Permissions.LOCATION);
-      if (res.status !== 'granted') {
-        console.log('Permission to access location was denied');
-      }
-       else {
-        console.log('Permission to access location granted');
-      }
-    };
-
-    config();
-  }, []);
   
-  window.setInterval(storeHighScore, 8000);
+  window.setInterval(storeHighScore, 10000);
   
   return (
     <View style={styles.container}>
